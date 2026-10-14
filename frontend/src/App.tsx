@@ -1,0 +1,123 @@
+import { useEffect, lazy, Suspense } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { useAuth } from "./auth/AuthContext";
+import { ProtectedRoute, OnboardingGate } from "./auth/ProtectedRoute";
+import { useNetwork } from "./providers/NetworkProvider";
+import { getOfflineSongs } from "./utils/offlineDB";
+import { useOfflineStore } from "./store/offlineStore";
+
+import { AppLayout } from "./components/layout/AppLayout";
+import LoginPage from "./pages/LoginPage";
+import OnboardingPage from "./pages/OnboardingPage";
+
+import { HomePage, ArtistPage, AlbumPage, LikedPage } from "./pages";
+import LibraryPage from "./pages/LibraryPage";
+import ProfilePage from "./pages/ProfilePage";
+import PlaylistPage from "./pages/PlaylistPage";
+import DownloadsPage from "./pages/DownloadsPage";
+import { SearchPage } from "./pages/SearchPage";
+import { PlayerProvider } from "./providers/PlayerProvider";
+import { AnalyticsTracker } from "./components/analytics/AnalyticsTracker";
+import AboutPage from "./pages/AboutPage";
+
+// Code-split heavy/secondary routes for ultra-fast initial load
+const SoulLinkPage = lazy(() => import("./pages/SoulLinkPage"));
+const ImportPage = lazy(() => import("./pages/ImportPage"));
+const SongSharePage = lazy(() => import("./pages/SongSharePage"));
+const AdminPanel = lazy(() => import("./pages/AdminPanel"));
+
+export default function App() {
+  useEffect(() => {
+    getOfflineSongs().then((songs) => {
+      const store = useOfflineStore.getState();
+
+      // Merge state: Keep existing Zustand data if it exists (for fileSize, etc)
+      const hydrated = songs.map((s) => {
+        const existing = store.downloads.find(d => d.songId === s.id);
+        return {
+          songId: s.id,
+          title: s.name,
+          artist: s.artist,
+          albumArt: s.albumArt,
+          duration: s.duration,
+          filePath: existing?.filePath || s.downloadUrl?.[0]?.url || "",
+          downloadedAt: s.savedAt,
+          fileSize: existing?.fileSize || s.fileSize || 0,
+          playlistName: s.playlistName,
+          songData: existing?.songData || s,
+        };
+      });
+
+      store.updateDownloadsOrder(hydrated);
+    });
+  }, []);
+
+  return (
+    <>
+      <PlayerProvider>
+        <AppRouter />
+      </PlayerProvider>
+    </>
+  );
+}
+
+function AppRouter() {
+  const { isOnline } = useNetwork();
+  const { user } = useAuth();
+
+  return (
+    <>
+      <AnalyticsTracker />
+      <Suspense fallback={<div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center"><div className="w-8 h-8 rounded-full border-2 border-rose-500/30 border-t-rose-500 animate-spin" /></div>}>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/onboarding" element={<OnboardingPage />} />
+          <Route path="/admin" element={<AdminPanel />} />
+          <Route path="/panel-m8u3p9" element={<AdminPanel />} />
+
+          <Route path="/" element={<OnboardingGate><AppLayout /></OnboardingGate>}>
+            {/* These work ALWAYS — online or offline */}
+            <Route index element={<HomePage />} />
+            <Route path="downloads" element={<DownloadsPage />} />
+            <Route path="library" element={<LibraryPage />} />
+            <Route path="liked" element={<LikedPage />} />
+            <Route path="artist/:id" element={<ArtistPage />} />
+            <Route path="album/:id" element={<AlbumPage />} />
+            <Route path="playlist/:slug/:id" element={<PlaylistPage />} />
+            <Route path="playlist/:id" element={<PlaylistPage />} />
+            <Route path="song/:slug/:id" element={<SongSharePage />} />
+            <Route path="song/:id" element={<SongSharePage />} />
+            <Route
+              path="soullink"
+              element={
+                <ProtectedRoute>
+                  <SoulLinkPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="import"
+              element={
+                <ProtectedRoute>
+                  <ImportPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Online only — redirect to downloads if offline */}
+            <Route
+              path="search"
+              element={
+                isOnline ? <SearchPage /> : <Navigate to="/downloads" replace />
+              }
+            />
+
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="about" element={<AboutPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Route>
+        </Routes>
+      </Suspense>
+    </>
+  );
+}

@@ -1,0 +1,12 @@
+{
+  "version": "5.1.2",
+  "apk_url": "/HeartTone.apk",
+  "mandatory": false,
+  "changelog": [
+    "New HeartTone glowing Heart launcher icon and branding",
+    "Instant Fuzzy Search with client-side caching (<100ms)",
+    "Offline Downloads with auto-reconciliation and persistent playback",
+    "Redesigned About Page with Developer & Designer credits",
+    "Direct in-app APK download & update notification system"
+  ]
+}

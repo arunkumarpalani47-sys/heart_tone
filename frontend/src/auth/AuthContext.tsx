@@ -1,0 +1,141 @@
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
+import { GoogleOAuthProvider } from "@react-oauth/google";
+import { User } from "../types/user";
+import * as api from "../api/backend";
+import { loadNativeToken } from "../api/backend";
+import { analytics } from "../services/analytics";
+import { clearLocalRecentlyPlayed } from "../utils/recentHistory";
+
+interface AuthContextType {
+  user: User | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  login: (googleCredential: string) => Promise<{ isNewUser: boolean }>;
+  loginWithCredentials: (
+    identifier: string,
+    password: string,
+  ) => Promise<{ isNewUser: boolean }>;
+  loginAfterRegister: (user: User, token?: string) => Promise<void>;
+  logout: () => Promise<void>;
+  updateUser: (user: User) => void;
+}
+
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  isLoading: true,
+  isAuthenticated: false,
+  login: async () => ({ isNewUser: false }),
+  loginWithCredentials: async () => ({ isNewUser: false }),
+  loginAfterRegister: async () => {},
+  logout: async () => {},
+  updateUser: () => {},
+});
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Check existing session on mount (load native token first)
+  useEffect(() => {
+    async function init() {
+      try {
+        await loadNativeToken();
+        // Give getMe a max of 4 seconds so a slow/connecting DB never freezes the entire app
+        const fetchMePromise = api.getMe();
+        const timeoutPromise = new Promise<null>((_, reject) =>
+          setTimeout(() => reject(new Error("Timeout")), 4000)
+        );
+        const u = await Promise.race([fetchMePromise, timeoutPromise]);
+        setUser(u);
+        if (u) {
+          analytics.setUserId(u._id);
+          analytics.setUserProperty("login_type", u.googleId ? "google" : "email");
+        }
+      } catch {
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    init();
+  }, []);
+
+  const login = useCallback(async (googleCredential: string) => {
+    const { user: loggedInUser, isNewUser } =
+      await api.loginWithGoogle(googleCredential);
+    setUser(loggedInUser);
+    analytics.setUserId(loggedInUser._id);
+    analytics.setUserProperty("login_type", "google");
+    analytics.track(isNewUser ? "signup" : "login", { method: "google", user_id: loggedInUser._id });
+    return { isNewUser };
+  }, []);
+
+  const loginWithCredentials = useCallback(
+    async (identifier: string, password: string) => {
+      const { data } = await api.loginWithCredentials({ identifier, password });
+      if (data.token) await api.saveNativeToken(data.token);
+      setUser(data.user);
+      analytics.setUserId(data.user._id);
+      analytics.setUserProperty("login_type", "email");
+      analytics.track("login", { method: "credentials", user_id: data.user._id });
+      return { isNewUser: data.isNewUser ?? !data.user.onboardingComplete };
+    },
+    [],
+  );
+
+  const loginAfterRegister = useCallback(async (user: User, token?: string) => {
+    if (token) await api.saveNativeToken(token);
+    setUser(user);
+    analytics.setUserId(user._id);
+    analytics.setUserProperty("login_type", "email");
+    analytics.track("signup", { method: "credentials", user_id: user._id });
+  }, []);
+
+  const logout = useCallback(async () => {
+    analytics.track("logout");
+    analytics.setUserId(null);
+    analytics.setUserProperty("login_type", "none");
+    await api.logout();
+    setUser(null);
+    // Clear dashboard cache and liked songs so fresh data loads on next login
+    // and previous user's liked songs never bleed through after logout.
+    try {
+      for (const key of Object.keys(sessionStorage)) {
+        if (key.startsWith("ss_dashboard_")) sessionStorage.removeItem(key);
+      }
+      localStorage.removeItem("ss_liked");
+      clearLocalRecentlyPlayed();
+    } catch {}
+  }, []);
+
+  const updateUser = useCallback((u: User) => setUser(u), []);
+
+  const value: AuthContextType = {
+    user,
+    isLoading,
+    isAuthenticated: !!user,
+    login,
+    loginWithCredentials,
+    loginAfterRegister,
+    logout,
+    updateUser,
+  };
+
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
+
+  return (
+    <GoogleOAuthProvider clientId={clientId}>
+      <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+    </GoogleOAuthProvider>
+  );
+}
+
+export function useAuth() {
+  return useContext(AuthContext);
+}

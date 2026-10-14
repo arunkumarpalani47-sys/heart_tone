@@ -1,0 +1,239 @@
+import "dotenv/config";
+if (process.env.NODE_ENV !== "production") {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+}
+import express from "express";
+import { createServer } from "http";
+import cors from "cors";
+import helmet from "helmet";
+import cookieParser from "cookie-parser";
+import winston from "winston";
+import { connectMongoDB } from "./services/mongodb.js";
+import { initializeSocket } from "./socket/index.js";
+import authRoutes from "./routes/auth.js";
+import searchRoutes from "./routes/search.js";
+import playlistRoutes from "./routes/playlist.js";
+import userRoutes from "./routes/user.js";
+import aiRoutes from "./routes/ai.js";
+import sessionRoutes from "./routes/session.js";
+import dashboardRoutes from "./routes/dashboard.js";
+import mixesRoutes from "./routes/mixes.js";
+import importRoutes from "./routes/import.js";
+import recommendationRoutes from "./routes/recommendations.js";
+import announcementRoutes from "./routes/announcements.js";
+import radioRoutes from "./routes/radio.js";
+import feedbackRoutes from "./routes/feedback.js";
+import adminRoutes from "./routes/admin.js";
+import dailyMixRoutes from "./routes/dailyMix.js";
+import losslessRoutes from "./routes/lossless.js";
+import { rateLimiter } from "./middleware/rateLimiter.js";
+import { enhancedSearch } from "./services/searchEnhancer.js";
+
+// Logger
+export const logger = winston.createLogger({
+  level: "info",
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.json(),
+  ),
+  transports: [
+    new winston.transports.Console({
+      format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.simple(),
+      ),
+    }),
+  ],
+});
+
+const app = express();
+const httpServer = createServer(app);
+
+const FRONTEND_URL = (
+  process.env.FRONTEND_URL || "http://localhost:5173"
+).replace(/\/+$/, "");
+
+// Middleware
+app.use((_req, res, next) => {
+  // Fix Google OAuth COOP issue — must be before cors()
+  res.setHeader("Cross-Origin-Opener-Policy", "unsafe-none");
+  res.setHeader("Cross-Origin-Embedder-Policy", "unsafe-none");
+  next();
+});
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginOpenerPolicy: false, // disabled — interferes with postMessage & Vite HMR
+  }),
+);
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, curl, etc.)
+      if (!origin) return callback(null, true);
+
+      const isAllowed =
+        origin === "https://localhost" ||
+        origin === "capacitor://localhost" ||
+        origin === "http://localhost" ||
+        origin === "file://" ||
+        origin === FRONTEND_URL ||
+        /^http:\/\/localhost:\d+$/.test(origin) ||
+        /\.vercel\.app$/.test(origin);
+
+      if (isAllowed) {
+        return callback(null, true);
+      }
+
+      console.warn(`[CORS] Blocked origin: ${origin}`);
+      callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization", "Accept", "x-admin-secret"],
+  }),
+);
+app.use(express.json({ limit: "5mb" }));
+app.use(cookieParser());
+// React StrictMode in dev mounts every component twice, triggering 4-6 requests
+// per page navigation.  Use a generous limit in dev so you never hit the ceiling
+// during normal work; production keeps the tight security limit.
+const RATE_LIMIT = process.env.NODE_ENV === "production" ? 300 : 1000;
+app.use(rateLimiter(RATE_LIMIT, 60000));
+
+// Routes
+app.use("/api/auth", authRoutes);
+app.use("/api/search", searchRoutes);
+app.use("/api/playlists", playlistRoutes);
+app.use("/api/user", userRoutes);
+app.use("/api/ai", aiRoutes);
+app.use("/api/session", sessionRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/mixes", mixesRoutes);
+app.use("/api/import", importRoutes);
+app.use("/api/recommendations", recommendationRoutes);
+app.use("/api/announcements", announcementRoutes);
+app.use("/api/radio", radioRoutes);
+app.use("/api/feedback", feedbackRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/daily-mix", dailyMixRoutes);
+app.use("/api/lossless", losslessRoutes);
+
+// Health check
+app.get("/health", (_req, res) => {
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+// App version metadata & update info
+app.get("/api/version", (_req, res) => {
+  res.json({
+    version: "5.1.2",
+    apk_url: "/HeartTone.apk",
+    mandatory: false,
+    changelog: [
+      "New HeartTone glowing Heart launcher icon and branding",
+      "Instant Fuzzy Search with client-side caching (<100ms)",
+      "Offline Downloads with auto-reconciliation and persistent playback",
+      "Redesigned About Page with Developer & Designer credits",
+      "Direct in-app APK download & update notification system"
+    ]
+  });
+});
+
+// ── Keep-alive self-ping to prevent Render free-tier sleep ───────────────
+function startKeepAlive() {
+  const raw = process.env.RENDER_EXTERNAL_URL || process.env.BACKEND_URL;
+  if (!raw) {
+    logger.info("[KeepAlive] No RENDER_EXTERNAL_URL set — skipping self-ping");
+    return;
+  }
+  // render.yaml property:host gives bare hostname without scheme — add it
+  const base = raw.startsWith("http") ? raw : `https://${raw}`;
+  const url = `${base.replace(/\/+$/, "")}/health`;
+  const INTERVAL = 13 * 60 * 1000; // every 13 minutes (Render sleeps after 15)
+
+  setInterval(async () => {
+    try {
+      const res = await fetch(url);
+      logger.info(`[KeepAlive] Pinged ${url} → ${res.status}`);
+    } catch (err) {
+      logger.warn(`[KeepAlive] Ping failed: ${(err as Error).message}`);
+    }
+  }, INTERVAL);
+
+  logger.info(`[KeepAlive] Self-ping active every 13 min → ${url}`);
+}
+
+// Initialize Socket.io
+initializeSocket(httpServer);
+
+// Connect to MongoDB and start server
+const PORT = Number.parseInt(process.env.PORT || "4000", 10);
+
+function handleListenError(error: NodeJS.ErrnoException) {
+  if (error.code === "EADDRINUSE") {
+    logger.error(
+      `[Startup] Port ${PORT} is already in use. Stop the existing process or start this app with a different PORT value.`,
+    );
+    process.exit(1);
+  }
+
+  throw error;
+}
+
+async function start() {
+  await connectMongoDB();
+
+  httpServer.once("error", handleListenError);
+
+  httpServer.listen(PORT, () => {
+    console.log(`\n🚀 SoulSync Backend running on port ${PORT}`);
+    console.log(`   Health: http://localhost:${PORT}/health`);
+    console.log(`   Frontend: ${FRONTEND_URL}`);
+    console.log(`   JioSaavn API Config:`);
+    console.log(`     - JIOSAAVN_API: ${process.env.JIOSAAVN_API || "Not Set (using default/fallback)"}`);
+    console.log(`     - JIOSAAVN_API_PRIMARY: ${process.env.JIOSAAVN_API_PRIMARY || "Not Set"}`);
+    console.log(`     - JIOSAAVN_API_FALLBACK: ${process.env.JIOSAAVN_API_FALLBACK || "Not Set"}\n`);
+
+    // Start keep-alive after server boots
+    startKeepAlive();
+
+    // Warm the top 20 search queries 10s after boot so first real users
+    // get instant cached results instead of a cold-start wait.
+    const WARM_QUERIES = [
+      "arijit singh",
+      "ar rahman",
+      "anirudh ravichander",
+      "shreya ghoshal",
+      "diljit dosanjh",
+      "ap dhillon",
+      "atif aslam",
+      "badshah",
+      "trending songs 2024",
+      "bollywood hits",
+      "punjabi songs",
+      "sad songs",
+      "party songs",
+      "chill lofi songs",
+      "romantic songs",
+      "tamil hits",
+      "telugu songs",
+      "english hits 2024",
+      "gym workout songs",
+      "devotional songs",
+    ];
+    setTimeout(async () => {
+      logger.info("[CacheWarm] Starting background search cache warm-up…");
+      for (const q of WARM_QUERIES) {
+        try {
+          await enhancedSearch(q, "all", 20);
+          await new Promise((r) => setTimeout(r, 400)); // gentle pacing
+        } catch {
+          // Non-fatal – silently skip
+        }
+      }
+      logger.info("[CacheWarm] Done warming search cache.");
+    }, 10_000);
+  });
+}
+
+start().catch(console.error);
