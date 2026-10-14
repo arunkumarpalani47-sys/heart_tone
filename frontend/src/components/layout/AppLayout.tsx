@@ -230,19 +230,19 @@ export function AppLayout() {
           {/* Top Header */}
           {!isSearchPage && (
             <header
-              className="flex-shrink-0 flex items-center gap-4 px-4 md:px-6 py-3 sticky top-0 z-20 backdrop-blur-3xl"
+              className="flex-shrink-0 flex items-center gap-3 px-3.5 sm:px-6 pt-[max(2.6rem,calc(env(safe-area-inset-top,0px)+0.75rem))] pb-2.5 md:py-3 sticky top-0 z-20 backdrop-blur-3xl"
               style={{
                 background: `linear-gradient(to bottom, ${bgColor}40 0%, transparent 100%)`,
               }}
             >
               <button
                 onClick={() => navigate("/")}
-                className="flex items-center gap-2 md:hidden"
+                className="flex items-center gap-2 flex-shrink-0 md:hidden active:scale-95 transition-transform"
               >
-                <div className="w-8 h-8 rounded-xl overflow-hidden flex items-center justify-center shadow-lg shadow-pink-500/20 border border-white/[0.08] bg-black">
+                <div className="w-8 h-8 rounded-xl overflow-hidden flex items-center justify-center shadow-lg shadow-pink-500/20 border border-white/[0.08] bg-black flex-shrink-0">
                   <img src="/icon.png" alt="HeartTone" className="w-full h-full object-cover" />
                 </div>
-                <span className="text-lg font-bold text-white tracking-tight">
+                <span className="text-base sm:text-lg font-bold text-white tracking-tight flex-shrink-0">
                   HeartTone
                 </span>
               </button>
@@ -257,12 +257,12 @@ export function AppLayout() {
               </div>
 
               <div
-                className="flex-1 relative max-w-xl cursor-text"
+                className="flex-1 min-w-0 relative max-w-xl cursor-text"
                 onClick={() => navigate("/search")}
               >
                 <Search
-                  size={16}
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none"
+                  size={15}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none"
                 />
                 <input
                   type="text"
@@ -277,8 +277,8 @@ export function AppLayout() {
                     );
                   }}
                   onFocus={() => navigate("/search")}
-                  placeholder="Search songs, artists, albums..."
-                  className="w-full bg-white/5 border border-white/5 hover:bg-white/10 focus:bg-white/10 focus:border-white/20 rounded-full pl-10 pr-4 py-2 text-sm transition-all outline-none cursor-pointer"
+                  placeholder="Search songs, artists..."
+                  className="w-full bg-white/[0.06] border border-white/[0.08] hover:bg-white/[0.1] focus:bg-white/[0.12] focus:border-white/20 rounded-full pl-9 pr-3.5 py-2 text-xs sm:text-sm text-white placeholder-white/35 transition-all outline-none cursor-pointer truncate"
                 />
               </div>
             </header>

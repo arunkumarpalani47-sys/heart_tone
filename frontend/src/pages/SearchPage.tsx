@@ -15,6 +15,7 @@ import {
   Trash2,
   Sparkles,
   ChevronRight,
+  ChevronLeft,
   Disc3,
   User,
   Music,
@@ -471,50 +472,65 @@ export function SearchPage() {
   const hasAnyResults = hasSongs || hasAlbums || hasArtists;
 
   return (
-    <div className="min-h-screen pb-32 pt-2 px-4 md:px-8 max-w-7xl mx-auto space-y-6 animate-fadeIn">
+    <div className="min-h-screen pb-32 pt-[max(2.6rem,calc(env(safe-area-inset-top,0px)+0.75rem))] md:pt-4 px-4 md:px-8 max-w-7xl mx-auto space-y-6 animate-fadeIn">
       {/* ── Search Bar & Header ────────────────────────────────────────── */}
       <div className="relative" ref={searchContainerRef}>
         <div
-          className="relative flex items-center cursor-text"
+          className="relative flex items-center gap-2.5 cursor-text"
           onClick={() => {
             if (searchInputRef.current) {
               searchInputRef.current.focus();
             }
           }}
         >
-          <Search
-            size={20}
-            className="absolute left-4 text-white/40 pointer-events-none transition-colors"
-          />
-          <input
-            ref={searchInputRef}
-            type="text"
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              setShowSuggestions(true);
-              setSelectedIndex(-1);
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(-1);
             }}
-            onFocus={() => setShowSuggestions(true)}
-            onKeyDown={handleKeyDown}
-            placeholder="Search songs, albums, artists..."
-            className="w-full bg-white/[0.06] hover:bg-white/[0.09] focus:bg-white/[0.12] text-white placeholder-white/40 text-base font-medium rounded-full pl-12 pr-12 py-3.5 outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-sp-green/60 transition-all duration-200 shadow-inner"
-            aria-label="Search music, albums, and artists"
-          />
-          {state === "loading" ? (
-            <Loader2
+            className="md:hidden flex-shrink-0 w-10 h-10 rounded-full bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-white/70 hover:text-white active:scale-95 transition-all"
+            aria-label="Back"
+          >
+            <ChevronLeft size={20} />
+          </button>
+
+          <div className="relative flex-1 flex items-center">
+            <Search
               size={18}
-              className="absolute right-4 text-sp-green animate-spin"
+              className="absolute left-3.5 text-white/40 pointer-events-none transition-colors"
             />
-          ) : query ? (
-            <button
-              onClick={handleClear}
-              className="absolute right-4 p-1 rounded-full text-white/40 hover:text-white hover:bg-white/10 transition-all"
-              aria-label="Clear search query"
-            >
-              <X size={18} />
-            </button>
-          ) : null}
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setShowSuggestions(true);
+                setSelectedIndex(-1);
+              }}
+              onFocus={() => setShowSuggestions(true)}
+              onKeyDown={handleKeyDown}
+              placeholder="Search songs, albums, artists..."
+              className="w-full bg-white/[0.06] hover:bg-white/[0.09] focus:bg-white/[0.12] text-white placeholder-white/40 text-sm sm:text-base font-medium rounded-full pl-10 pr-10 py-3 outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-sp-green/60 transition-all duration-200 shadow-inner"
+              aria-label="Search music, albums, and artists"
+            />
+            {state === "loading" ? (
+              <Loader2
+                size={18}
+                className="absolute right-3.5 text-sp-green animate-spin"
+              />
+            ) : query ? (
+              <button
+                type="button"
+                onClick={handleClear}
+                className="absolute right-3 p-1 rounded-full text-white/40 hover:text-white hover:bg-white/10 transition-all"
+                aria-label="Clear search query"
+              >
+                <X size={18} />
+              </button>
+            ) : null}
+          </div>
         </div>
 
         {/* ── Dynamic Instant Suggestions Overlay (ONLY when typing) ────────────────── */}
