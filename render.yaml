@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: soulsync-backend
+    name: hearttone-backend
     runtime: node
     rootDir: backend
     buildCommand: npm install --include=dev && npm run build
@@ -9,11 +9,9 @@ services:
       - key: NODE_ENV
         value: production
       - key: JIOSAAVN_API
-        value: https://jiosavan-api2.vercel.app/api
-      - key: BACKEND_URL
-        value: https://soulsync-backend-a5fs.onrender.com
+        value: https://saavn.sumit.co/api
       - key: RENDER_EXTERNAL_URL
         fromService:
           type: web
-          name: soulsync-backend
+          name: hearttone-backend
           property: host
