@@ -127,7 +127,7 @@ app.get("/health", (_req, res) => {
 app.get("/api/version", (_req, res) => {
   res.json({
     version: "5.1.2",
-    apk_url: "/HeartTone.apk",
+    apk_url: "https://github.com/arunkumarpalani47-sys/heart_tone/releases/download/v5.1.2/HeartTone.apk",
     mandatory: false,
     changelog: [
       "New HeartTone glowing Heart launcher icon and branding",

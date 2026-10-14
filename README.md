@@ -21,7 +21,7 @@ The application serves both modern web browsers and native Android devices via C
 | Platform | Access Link | Requirement |
 | :--- | :--- | :--- |
 | **Web Application** | [hearttone.vercel.app](https://hearttone.vercel.app) *(or your deployed Vercel domain)* | Modern Web Browser |
-| **Android Client** | [HeartTone.apk](frontend/public/HeartTone.apk) | Android 7.0+ (API 24+) |
+| **Android Client** | [HeartTone.apk](https://github.com/arunkumarpalani47-sys/heart_tone/releases/download/v5.1.2/HeartTone.apk) | Android 7.0+ (API 24+) |
 
 ---
 

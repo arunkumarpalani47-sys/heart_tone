@@ -23,7 +23,7 @@ export const UpdatePopup = ({ data, onUpdate, onClose }: Props) => {
             return;
         }
 
-        const rawUrl = data.apk_url || "/HeartTone.apk";
+        const rawUrl = data.apk_url || "https://github.com/arunkumarpalani47-sys/heart_tone/releases/download/v5.1.2/HeartTone.apk";
         const targetUrl = rawUrl.startsWith("http") ? rawUrl : window.location.origin + rawUrl;
 
         if (isNative()) {
