@@ -1031,6 +1031,129 @@ export const HomePage = () => {
               )}
             </div>
           )}
+
+          {/* ── 4. DISCOVERY & REGIONAL CHARTBUSTERS ── */}
+          {guestSections.length > 0 && (
+            <div className="space-y-10 mb-10">
+              {guestSections.map((sec: any) => (
+                <HSectionInline
+                  key={sec.title}
+                  title={sec.title}
+                  subtitle="Trending hits loved across the charts"
+                  songs={sec.songs}
+                  currentSong={currentSong}
+                  isPlaying={isPlaying}
+                  onPlay={(song) => handleHomeSongClick(song, sec.songs)}
+                  cardSize="md"
+                />
+              ))}
+            </div>
+          )}
+
+          {/* ── 5. TOP ARTISTS THIS WEEK ── */}
+          <div className="mb-10">
+            <SectionHeader
+              title="Top Artists This Week"
+              subtitle="Global chart-topping performers"
+            />
+            <div className="flex overflow-x-auto hide-scrollbar gap-4 pb-2 -mx-4 px-4">
+              {TOP_ARTISTS.map((artist) => (
+                <div
+                  key={artist.name}
+                  onClick={() =>
+                    artist.id
+                      ? navigate(`/artist/${artist.id}`)
+                      : navigate(`/search?q=${encodeURIComponent(artist.name)}`)
+                  }
+                  className="flex-shrink-0 w-32 p-3 rounded-2xl bg-white/[0.03] hover:bg-white/[0.07] border border-transparent hover:border-white/[0.06] transition-all cursor-pointer text-center group"
+                >
+                  <div className="w-24 h-24 mx-auto rounded-full overflow-hidden mb-2.5 shadow-lg group-hover:scale-105 transition-transform border border-white/10">
+                    <img
+                      src={artist.image}
+                      alt={artist.name}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                  <p className="text-xs font-bold text-white truncate group-hover:text-sp-green transition-colors">
+                    {artist.name}
+                  </p>
+                  <p className="text-[10px] text-white/40 truncate mt-0.5">
+                    {artist.role}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ── 6. EDITORIAL & STAFF PICKS ── */}
+          <div className="mb-10">
+            <SectionHeader
+              title="Editorial & Staff Picks"
+              subtitle="Hand-curated mood and activity playlists"
+            />
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              {EDITORIAL_PICKS.map((pick) => {
+                const IconComponent = pick.icon;
+                return (
+                  <div
+                    key={pick.title}
+                    onClick={() => handleVibeClick(pick.query)}
+                    className={`p-4 rounded-2xl bg-gradient-to-b ${pick.gradient} border border-white/[0.06] hover:border-white/20 transition-all cursor-pointer group flex flex-col justify-between h-36`}
+                  >
+                    <div className="w-9 h-9 rounded-xl bg-black/40 backdrop-blur-md flex items-center justify-center text-white group-hover:scale-110 transition-transform">
+                      <IconComponent size={18} />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-white group-hover:text-sp-green transition-colors">
+                        {pick.title}
+                      </h4>
+                      <p className="text-[11px] text-white/50 truncate mt-0.5">
+                        {pick.desc}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ── 7. EXPERIENCE HEARTOONE FEATURES ── */}
+          <div className="mb-10">
+            <SectionHeader
+              title="Experience HeartTone Features"
+              subtitle="Everything available to explore"
+            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {FEATURE_SHOWCASE.map((feat) => {
+                const IconComponent = feat.icon;
+                return (
+                  <div
+                    key={feat.title}
+                    onClick={() => handleFeatureClick(feat)}
+                    className={`p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r ${feat.gradient} border backdrop-blur-md cursor-pointer group hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between gap-3`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="w-8 h-8 rounded-xl bg-black/40 flex items-center justify-center text-white border border-white/10 group-hover:scale-110 transition-transform">
+                        <IconComponent size={16} />
+                      </div>
+                      <span className="px-2 py-0.5 rounded-md bg-white/10 text-white/80 text-[10px] font-bold border border-white/10">
+                        {feat.badge}
+                      </span>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-white group-hover:text-sp-green transition-colors">
+                        {feat.title}
+                      </h4>
+                      <p className="text-[11px] text-white/50 mt-0.5 line-clamp-2 leading-relaxed">
+                        {feat.desc}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </>
       ) : (
         /* ═════════════════════════════════════════════════════════════════

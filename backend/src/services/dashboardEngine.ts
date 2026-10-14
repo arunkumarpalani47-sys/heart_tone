@@ -238,28 +238,28 @@ export async function buildDashboard(
       } catch (e) {
         console.error("[Dashboard] Guest aggregate error:", e);
       }
-
-      const [rawGlobal, english, tamil, hindi] = await Promise.all([
-        getIndustryNewReleases(["english", "pop", "french", "spanish", "latin"], 35),
-        getIndustryNewReleases(["english"], 20),
-        getIndustryNewReleases(["tamil"], 20),
-        getIndustryNewReleases(["hindi"], 20),
-      ]);
-
-      const pureGlobal = rawGlobal.filter((s) => !isIndianSong(s));
-
-      guestNewReleases = [
-        {
-          title: "Global New Releases",
-          songs: pureGlobal.length > 0 ? pureGlobal : english.filter((s) => !isIndianSong(s)),
-        },
-        { title: "Trending English Hits", songs: english },
-        { title: "Tamil Chartbusters", songs: tamil },
-        { title: "Hindi Hits & Releases", songs: hindi },
-      ].filter((sec) => sec.songs && sec.songs.length > 0);
-    } else {
-      newReleasesTitle = `New ${langs.map((l) => l.charAt(0).toUpperCase() + l.slice(1)).join(" & ")} Releases`;
     }
+
+    const [rawGlobal, english, tamil, hindi] = await Promise.all([
+      getIndustryNewReleases(["english", "pop", "french", "spanish", "latin"], 35),
+      getIndustryNewReleases(["english"], 25),
+      getIndustryNewReleases(["tamil"], 25),
+      getIndustryNewReleases(["hindi"], 25),
+    ]);
+
+    const pureGlobal = rawGlobal.filter((s) => !isIndianSong(s));
+
+    guestNewReleases = [
+      {
+        title: "Global New Releases",
+        songs: pureGlobal.length > 0 ? pureGlobal : english.filter((s) => !isIndianSong(s)),
+      },
+      { title: "Tamil Chartbusters", songs: tamil },
+      { title: "Hindi Hits & Releases", songs: hindi },
+      { title: "Trending English Hits", songs: english },
+    ].filter((sec) => sec.songs && sec.songs.length > 0);
+
+    newReleasesTitle = `New ${langs.map((l) => l.charAt(0).toUpperCase() + l.slice(1)).join(" & ")} Releases`;
   } catch (err) {
     console.error("[Dashboard] New Releases setup error:", err);
   }
@@ -294,6 +294,11 @@ export async function buildDashboard(
         .filter((s) => !globalExcludeIds.has(s.id))
         .slice(0, 20);
 
+      // If user has no specific new releases, fall back to language chart
+      if (newReleasesSongs.length === 0 && guestNewReleases && guestNewReleases.length > 0) {
+        newReleasesSongs = guestNewReleases[0].songs.slice(0, 20);
+      }
+
       for (const s of newReleasesSongs) {
         globalExcludeIds.add(s.id);
       }
@@ -302,12 +307,16 @@ export async function buildDashboard(
         .filter((s) => !globalExcludeIds.has(s.id))
         .slice(0, 36);
 
-      if (madeForYouSongs.length < 24) {
-        for (const s of rawMadeForYou) {
-          if (!madeForYouSongs.some((m) => m.id === s.id)) {
-            madeForYouSongs.push(s);
-            if (madeForYouSongs.length >= 36) break;
+      // If new account has few Made For You recommendations, enrich with chartbusters
+      if (madeForYouSongs.length < 16 && guestNewReleases) {
+        for (const sec of guestNewReleases) {
+          for (const s of sec.songs) {
+            if (!madeForYouSongs.some((m) => m.id === s.id) && !globalExcludeIds.has(s.id)) {
+              madeForYouSongs.push(s);
+              if (madeForYouSongs.length >= 36) break;
+            }
           }
+          if (madeForYouSongs.length >= 36) break;
         }
       }
     }
