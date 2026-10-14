@@ -21,7 +21,7 @@ import { analytics } from "../../services/analytics";
 
 const BACKEND_URL = (
   import.meta.env.VITE_BACKEND_URL ||
-  "https://soulsync-backend-a5fs.onrender.com"
+  "https://heart-tone.onrender.com"
 ).replace(/\/$/, "");
 const MAX_SONGS_INPUT = 100;
 const MAX_CHARS = 10000;

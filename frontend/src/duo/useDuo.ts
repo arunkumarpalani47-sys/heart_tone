@@ -12,7 +12,7 @@ import { getNativeToken } from "../api/backend";
 import { isNative } from "../utils/platform";
 import { analytics } from "../services/analytics";
 
-const LIVE_URL = "https://soulsync-backend-a5fs.onrender.com";
+const LIVE_URL = "https://heart-tone.onrender.com";
 const rawDuo = import.meta.env.VITE_DUO_BACKEND || import.meta.env.VITE_BACKEND_URL || "";
 const BACKEND_URL = (
   isNative() && (!rawDuo || rawDuo.includes("localhost"))

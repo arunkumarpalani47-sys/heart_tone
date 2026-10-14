@@ -35,7 +35,7 @@ export async function downloadSong(
     try {
       const BACKEND = (
         import.meta.env.VITE_BACKEND_URL ||
-        "https://soulsync-backend-a5fs.onrender.com"
+        "https://heart-tone.onrender.com"
       ).replace(/\/$/, "");
       const resp = await fetch(`${BACKEND}/api/search/stream-url?id=${song.id}`);
       if (resp.ok) {
