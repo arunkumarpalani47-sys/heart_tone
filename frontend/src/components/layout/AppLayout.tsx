@@ -230,9 +230,9 @@ export function AppLayout() {
           {/* Top Header */}
           {!isSearchPage && (
             <header
-              className="flex-shrink-0 flex items-center gap-3 px-3.5 sm:px-6 pt-[max(2.6rem,calc(env(safe-area-inset-top,0px)+0.75rem))] pb-2.5 md:py-3 sticky top-0 z-20 backdrop-blur-3xl"
+              className="pt-mobile-header flex-shrink-0 flex items-center gap-3 px-3.5 sm:px-6 pb-2.5 md:pb-3 sticky top-0 z-20 bg-[#060606]/95 md:backdrop-blur-xl border-b border-white/[0.04]"
               style={{
-                background: `linear-gradient(to bottom, ${bgColor}40 0%, transparent 100%)`,
+                paddingTop: "max(2.85rem, calc(env(safe-area-inset-top, 0px) + 0.75rem))",
               }}
             >
               <button
@@ -286,7 +286,11 @@ export function AppLayout() {
 
           {/* Main Content */}
           <main
-            className={`flex-1 overflow-y-auto ${!isSearchPage ? "px-4 md:px-8 pb-48 md:pb-24" : ""}`}
+            className={`flex-1 overflow-y-auto smooth-scroll ${!isSearchPage ? "px-4 md:px-8 pb-48 md:pb-24" : ""}`}
+            style={{
+              WebkitOverflowScrolling: "touch",
+              overscrollBehaviorY: "contain",
+            }}
           >
             <Outlet />
           </main>

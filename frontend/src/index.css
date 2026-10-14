@@ -65,7 +65,33 @@ body {
   background: rgba(255, 255, 255, 0.15);
 }
 
-/* ── Safe area top helper ──────────────────────────────────────── */
+/* ── Mobile Status Bar Safe Area Clearance ──────────────────────── */
+.pt-mobile-header {
+  padding-top: max(2.85rem, calc(env(safe-area-inset-top, 0px) + 0.75rem)) !important;
+}
+@media (min-width: 768px) {
+  .pt-mobile-header {
+    padding-top: 0.75rem !important;
+  }
+}
+
+.pt-mobile-search {
+  padding-top: max(2.85rem, calc(env(safe-area-inset-top, 0px) + 0.75rem)) !important;
+}
+@media (min-width: 768px) {
+  .pt-mobile-search {
+    padding-top: 1rem !important;
+  }
+}
+
+/* ── Smooth 60/120 FPS Touch Momentum Scrolling ────────────────── */
+.smooth-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  scroll-behavior: smooth;
+  transform: translateZ(0);
+}
+
 .pt-safe-or-3 {
   padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
 }

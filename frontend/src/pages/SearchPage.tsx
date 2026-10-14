@@ -472,7 +472,12 @@ export function SearchPage() {
   const hasAnyResults = hasSongs || hasAlbums || hasArtists;
 
   return (
-    <div className="min-h-screen pb-32 pt-[max(2.6rem,calc(env(safe-area-inset-top,0px)+0.75rem))] md:pt-4 px-4 md:px-8 max-w-7xl mx-auto space-y-6 animate-fadeIn">
+    <div
+      className="min-h-screen pb-32 pt-mobile-search px-4 md:px-8 max-w-7xl mx-auto space-y-6 animate-fadeIn"
+      style={{
+        paddingTop: "max(2.85rem, calc(env(safe-area-inset-top, 0px) + 0.75rem))",
+      }}
+    >
       {/* ── Search Bar & Header ────────────────────────────────────────── */}
       <div className="relative" ref={searchContainerRef}>
         <div

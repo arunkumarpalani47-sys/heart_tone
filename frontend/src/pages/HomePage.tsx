@@ -597,7 +597,8 @@ const QuickPicksList = ({
           onScroll={() => {
             if (scrollRef.current) {
               const { scrollLeft, clientWidth } = scrollRef.current;
-              setActivePage(Math.round(scrollLeft / clientWidth));
+              const nextPg = Math.round(scrollLeft / (clientWidth || 1));
+              setActivePage((prev) => (prev !== nextPg ? nextPg : prev));
             }
           }}
           className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory -mx-4 px-4 gap-3 pb-1"
@@ -875,7 +876,7 @@ export const HomePage = () => {
 
 
   const newReleasesList = normalizedNewReleases.slice(0, 24);
-  const isLoading = authLoading || dashboardLoading;
+  const isLoading = !dashboard && (dashboardLoading || (authLoading && typeof window !== "undefined" && !!localStorage.getItem("auth_token_web")));
 
   const handleShuffle = () => {
     if (!quickPicks.length) return;
