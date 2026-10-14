@@ -133,25 +133,27 @@ export default function OnboardingPage() {
           : true;
 
   return (
-    <div className="min-h-[100dvh] bg-[#050505] flex flex-col items-center justify-center p-5">
+    <div className="min-h-[100dvh] bg-[#050505] flex flex-col items-center justify-start pt-16 pb-28 px-4 w-full relative overflow-x-hidden">
       {/* ── Progress dots ──────────────────────────────────────── */}
-      <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2">
-        {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-          <div
-            key={i}
-            className={`h-1.5 rounded-full transition-all duration-400 ${
-              i === step
-                ? "w-6 bg-sp-green"
-                : i < step
-                  ? "w-1.5 bg-sp-green/40"
-                  : "w-1.5 bg-white/10"
-            }`}
-          />
-        ))}
+      <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center pt-5 pb-3 bg-gradient-to-b from-[#050505] via-[#050505]/95 to-transparent backdrop-blur-md">
+        <div className="flex items-center gap-2">
+          {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+            <div
+              key={i}
+              className={`h-1.5 rounded-full transition-all duration-400 ${
+                i === step
+                  ? "w-6 bg-sp-green"
+                  : i < step
+                    ? "w-1.5 bg-sp-green/40"
+                    : "w-1.5 bg-white/10"
+              }`}
+            />
+          ))}
+        </div>
       </div>
 
       {/* ── Steps ──────────────────────────────────────────────── */}
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md mx-auto my-auto py-4">
         <AnimatePresence mode="wait" custom={dir}>
           {/* ═══ Step 0: Name ═══ */}
           {step === 0 && (
@@ -163,19 +165,19 @@ export default function OnboardingPage() {
               animate="center"
               exit="exit"
               transition={{ duration: 0.3, ease: "easeOut" }}
-              className="flex flex-col items-center"
+              className="flex flex-col items-center text-center"
             >
-              <div className="w-16 h-16 rounded-2xl overflow-hidden flex items-center justify-center mb-6 shadow-xl shadow-pink-500/30 border border-white/[0.08] bg-black">
+              <div className="w-16 h-16 rounded-2xl overflow-hidden flex items-center justify-center mb-6 shadow-xl shadow-pink-500/20 border border-white/[0.08] bg-black">
                 <img src="/icon.png" alt="HeartTone" className="w-full h-full object-cover" />
               </div>
               <h2 className="text-2xl font-bold text-white text-center mb-1">
                 Welcome to HeartTone
               </h2>
-              <p className="text-sm text-white/30 text-center mb-8">
-                Let's personalize your experience
+              <p className="text-sm text-white/40 text-center mb-8">
+                Let's personalize your music experience
               </p>
 
-              <div className="w-full max-w-xs">
+              <div className="w-full max-w-xs text-left">
                 <label className="text-xs font-semibold text-white/40 uppercase tracking-wider block mb-2">
                   Your name
                 </label>
@@ -184,12 +186,12 @@ export default function OnboardingPage() {
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="What should we call you?"
-                  className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-3.5 text-white text-sm placeholder-white/20 outline-none focus:border-sp-green/40 transition-colors"
+                  className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-3.5 text-white text-sm placeholder-white/20 outline-none focus:border-sp-green/50 transition-colors"
                   autoFocus
                   onKeyDown={(e) => e.key === "Enter" && canProceed && next()}
                 />
                 {displayName.trim() && (
-                  <p className="text-xs text-white/20 mt-2">
+                  <p className="text-xs text-white/30 mt-2">
                     Hey,{" "}
                     <span className="text-sp-green font-medium">
                       {displayName.trim()}
@@ -212,39 +214,42 @@ export default function OnboardingPage() {
               exit="exit"
               transition={{ duration: 0.3, ease: "easeOut" }}
             >
-              <div className="text-center mb-6">
+              <div className="text-center mb-5">
                 <h2 className="text-2xl font-bold text-white">
                   Pick your languages
                 </h2>
-                <p className="text-sm text-white/30 mt-1">
-                  Select the languages you enjoy
+                <p className="text-sm text-white/40 mt-1">
+                  {languages.length === 0
+                    ? "Select at least 1 language to continue"
+                    : `${languages.length} language${languages.length > 1 ? "s" : ""} selected`}
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2 pb-2">
                 {LANGUAGES.map(({ id, label, script }) => {
                   const on = languages.includes(id);
                   return (
                     <button
                       key={id}
+                      type="button"
                       onClick={() => toggle(languages, setLanguages, id)}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all duration-200 ${
+                      className={`flex items-center gap-2.5 px-3.5 py-3 rounded-xl border text-left transition-all duration-200 active:scale-[0.98] ${
                         on
-                          ? "border-sp-green/30 bg-sp-green/[0.08]"
-                          : "border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04]"
+                          ? "border-sp-green/40 bg-sp-green/[0.12] shadow-sm shadow-sp-green/10"
+                          : "border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.06]"
                       }`}
                     >
                       <span
                         className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 ${
                           on
-                            ? "bg-sp-green/20 text-sp-green"
-                            : "bg-white/[0.05] text-white/30"
+                            ? "bg-sp-green/20 text-sp-green font-semibold"
+                            : "bg-white/[0.06] text-white/40"
                         }`}
                       >
                         {script.slice(0, 2)}
                       </span>
                       <span
-                        className={`text-sm font-medium ${on ? "text-white" : "text-white/50"}`}
+                        className={`text-sm font-medium truncate ${on ? "text-white font-semibold" : "text-white/60"}`}
                       >
                         {label}
                       </span>
@@ -272,15 +277,15 @@ export default function OnboardingPage() {
               exit="exit"
               transition={{ duration: 0.3, ease: "easeOut" }}
             >
-              <div className="text-center mb-6">
+              <div className="text-center mb-5">
                 <h2 className="text-2xl font-bold text-white">Your vibe</h2>
-                <p className="text-sm text-white/30 mt-1">
+                <p className="text-sm text-white/40 mt-1">
                   Pick eras and moods you love
                 </p>
               </div>
 
               {/* Eras */}
-              <p className="text-[11px] font-semibold text-white/25 uppercase tracking-wider mb-2">
+              <p className="text-[11px] font-semibold text-white/30 uppercase tracking-wider mb-2">
                 Eras
               </p>
               <div className="grid grid-cols-3 gap-2 mb-5">
@@ -289,26 +294,27 @@ export default function OnboardingPage() {
                   return (
                     <button
                       key={id}
+                      type="button"
                       onClick={() => toggle(eras, setEras, id)}
-                      className={`py-3 rounded-xl border text-center transition-all duration-200 ${
+                      className={`py-3 rounded-xl border text-center transition-all duration-200 active:scale-[0.98] ${
                         on
-                          ? "border-sp-green/30 bg-sp-green/[0.08]"
-                          : "border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04]"
+                          ? "border-sp-green/40 bg-sp-green/[0.12]"
+                          : "border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.06]"
                       }`}
                     >
                       <p
-                        className={`text-sm font-semibold ${on ? "text-white" : "text-white/50"}`}
+                        className={`text-sm font-semibold ${on ? "text-white" : "text-white/60"}`}
                       >
                         {label}
                       </p>
-                      <p className="text-[10px] text-white/20 mt-0.5">{sub}</p>
+                      <p className="text-[10px] text-white/30 mt-0.5">{sub}</p>
                     </button>
                   );
                 })}
               </div>
 
               {/* Moods */}
-              <p className="text-[11px] font-semibold text-white/25 uppercase tracking-wider mb-2">
+              <p className="text-[11px] font-semibold text-white/30 uppercase tracking-wider mb-2">
                 Moods
               </p>
               <div className="grid grid-cols-2 gap-2">
@@ -317,16 +323,17 @@ export default function OnboardingPage() {
                   return (
                     <button
                       key={id}
+                      type="button"
                       onClick={() => toggle(moods, setMoods, id)}
-                      className={`flex items-center gap-2.5 px-4 py-3 rounded-xl border text-left transition-all duration-200 ${
+                      className={`flex items-center gap-2.5 px-3.5 py-3 rounded-xl border text-left transition-all duration-200 active:scale-[0.98] ${
                         on
-                          ? "border-sp-green/30 bg-sp-green/[0.08]"
-                          : "border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04]"
+                          ? "border-sp-green/40 bg-sp-green/[0.12]"
+                          : "border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.06]"
                       }`}
                     >
                       <span className="text-base">{emoji}</span>
                       <span
-                        className={`text-sm font-medium ${on ? "text-white" : "text-white/50"}`}
+                        className={`text-sm font-medium ${on ? "text-white font-semibold" : "text-white/60"}`}
                       >
                         {label}
                       </span>
@@ -355,14 +362,14 @@ export default function OnboardingPage() {
               transition={{ duration: 0.3, ease: "easeOut" }}
               className="text-center"
             >
-              <div className="w-16 h-16 rounded-full bg-sp-green flex items-center justify-center mx-auto mb-6">
+              <div className="w-16 h-16 rounded-full bg-sp-green flex items-center justify-center mx-auto mb-6 shadow-xl shadow-sp-green/20">
                 <Check size={28} className="text-black" strokeWidth={3} />
               </div>
               <h2 className="text-2xl font-bold text-white mb-1">
                 You're all set
                 {displayName.trim() ? `, ${displayName.trim()}` : ""}!
               </h2>
-              <p className="text-sm text-white/30 mb-6">
+              <p className="text-sm text-white/40 mb-6">
                 Your personalized experience is ready
               </p>
 
@@ -371,7 +378,7 @@ export default function OnboardingPage() {
                 {languages.map((l) => (
                   <span
                     key={l}
-                    className="px-2.5 py-1 rounded-full bg-sp-green/10 text-sp-green text-xs font-medium capitalize"
+                    className="px-2.5 py-1 rounded-full bg-sp-green/10 border border-sp-green/20 text-sp-green text-xs font-medium capitalize"
                   >
                     {l}
                   </span>
@@ -379,7 +386,7 @@ export default function OnboardingPage() {
                 {moods.slice(0, 3).map((m) => (
                   <span
                     key={m}
-                    className="px-2.5 py-1 rounded-full bg-white/[0.06] text-white/50 text-xs font-medium capitalize"
+                    className="px-2.5 py-1 rounded-full bg-white/[0.06] text-white/60 text-xs font-medium capitalize"
                   >
                     {m}
                   </span>
@@ -387,7 +394,7 @@ export default function OnboardingPage() {
                 {eras.slice(0, 2).map((e) => (
                   <span
                     key={e}
-                    className="px-2.5 py-1 rounded-full bg-white/[0.06] text-white/50 text-xs font-medium"
+                    className="px-2.5 py-1 rounded-full bg-white/[0.06] text-white/60 text-xs font-medium"
                   >
                     {e}
                   </span>
@@ -396,15 +403,18 @@ export default function OnboardingPage() {
             </motion.div>
           )}
         </AnimatePresence>
+      </div>
 
-        {/* ── Nav buttons ──────────────────────────────────────── */}
-        <div className="flex items-center justify-between mt-10">
+      {/* ── Fixed Bottom Navigation Bar (Always Visible on Mobile & Desktop) ── */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#050505]/95 backdrop-blur-xl border-t border-white/[0.08] px-5 py-3.5 pb-[max(0.875rem,env(safe-area-inset-bottom))]">
+        <div className="max-w-md mx-auto flex items-center justify-between gap-3">
           {step > 0 ? (
             <button
+              type="button"
               onClick={back}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium text-white/40 hover:text-white transition-colors"
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-medium text-white/70 hover:text-white bg-white/[0.05] border border-white/[0.08] active:scale-95 transition-all"
             >
-              <ArrowLeft size={15} /> Back
+              <ArrowLeft size={16} /> Back
             </button>
           ) : (
             <div />
@@ -412,23 +422,30 @@ export default function OnboardingPage() {
 
           {step < 3 ? (
             <button
+              type="button"
               onClick={next}
               disabled={!canProceed}
-              className="flex items-center gap-1.5 px-6 py-2.5 rounded-full text-sm font-semibold bg-white text-black hover:bg-white/90 disabled:opacity-20 disabled:cursor-not-allowed transition-all"
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-semibold transition-all active:scale-95 ${
+                canProceed
+                  ? "bg-white text-black hover:bg-white/90 shadow-md shadow-white/10"
+                  : "bg-white/[0.08] text-white/30 border border-white/[0.08] cursor-not-allowed"
+              }`}
             >
-              Continue <ArrowRight size={15} />
+              {step === 1 && languages.length === 0 ? "Select a language" : "Continue"}
+              <ArrowRight size={16} />
             </button>
           ) : (
             <button
+              type="button"
               onClick={finish}
               disabled={saving}
-              className="flex items-center gap-1.5 px-7 py-2.5 rounded-full text-sm font-semibold bg-sp-green text-black hover:bg-sp-green/90 disabled:opacity-50 transition-all"
+              className="flex items-center gap-2 px-7 py-2.5 rounded-full text-sm font-bold bg-sp-green text-black hover:bg-sp-green/90 active:scale-95 transition-all shadow-lg shadow-sp-green/20"
             >
               {saving ? (
                 <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
-                  Start Listening <Music2 size={15} />
+                  Start Listening <Music2 size={16} />
                 </>
               )}
             </button>
